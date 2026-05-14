@@ -18,13 +18,22 @@ _page: object | None = None
 _plugin_root: str = ""
 
 
-def _load_headless() -> bool:
+_BROWSER_LAUNCHERS = {
+    "chromium": lambda pw, headless: pw.chromium.launch(headless=headless),
+    "firefox": lambda pw, headless: pw.firefox.launch(headless=headless),
+    "webkit": lambda pw, headless: pw.webkit.launch(headless=headless),
+    "msedge": lambda pw, headless: pw.chromium.launch(channel="msedge", headless=headless),
+    "chrome": lambda pw, headless: pw.chromium.launch(channel="chrome", headless=headless),
+}
+
+
+def _load_config():
     from pathlib import Path
 
     from plugins.playwright_browser.config_model import default_config_path, load_config
 
     root = Path(_plugin_root) if _plugin_root else Path(__file__).parent
-    return load_config(default_config_path(root)).headless
+    return load_config(default_config_path(root))
 
 
 def set_plugin_root(root: str) -> None:
@@ -38,10 +47,13 @@ def _ensure_browser():
         return _page
     from playwright.sync_api import sync_playwright
 
-    headless = _load_headless()
-    logger.info("Playwright 正在启动 Chromium (headless=%s)…", headless)
+    cfg = _load_config()
+    headless = cfg.headless
+    browser_type = cfg.browser_type
+    launcher = _BROWSER_LAUNCHERS.get(browser_type, _BROWSER_LAUNCHERS["chromium"])
+    logger.info("Playwright 正在启动 %s (headless=%s)…", browser_type, headless)
     _pw = sync_playwright().start()
-    _browser = _pw.chromium.launch(headless=headless)
+    _browser = launcher(_pw, headless)
     _context = _browser.new_context(
         viewport={"width": 1280, "height": 800},
         user_agent=(

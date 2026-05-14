@@ -7,12 +7,17 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
+BROWSER_CHOICES = ("chromium", "firefox", "webkit", "msedge", "chrome")
+
+
 @dataclass
 class PlaywrightBrowserConfig:
     headless: bool = True
+    browser_type: str = "chromium"
 
     def clamp(self) -> None:
-        pass
+        if self.browser_type not in BROWSER_CHOICES:
+            self.browser_type = "chromium"
 
 
 def default_config_path(plugin_root: Path) -> Path:
@@ -28,6 +33,7 @@ def load_config(path: Path) -> PlaywrightBrowserConfig:
             return PlaywrightBrowserConfig()
         return PlaywrightBrowserConfig(
             headless=bool(raw.get("headless", True)),
+            browser_type=str(raw.get("browser_type", "chromium")).strip().lower(),
         )
     except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return PlaywrightBrowserConfig()

@@ -59,7 +59,8 @@ def playwright_get_text() -> dict[str, Any]:
     description=(
         "Search the web using DuckDuckGo and return result summaries. "
         "A quick way to look up information without leaving the conversation. "
-        "Use this instead of playwright_navigate when you just need search results."
+        "Use this instead of playwright_navigate when you just need search results. "
+        "Parameters: query (search keywords)"
     ),
     group=PLAYWRIGHT_TOOL_GROUP,
 )
